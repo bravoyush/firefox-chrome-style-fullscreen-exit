@@ -1,0 +1,208 @@
+#firefox-fullscreen-exit-overlay {
+
+  position: absolute !important;
+
+  top: 0 !important;
+  left: 0 !important;
+
+  width: 100% !important;
+  height: 80px !important;
+
+  display: flex !important;
+
+  justify-content: center !important;
+  align-items: flex-start !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  z-index: 2147483647 !important;
+
+  pointer-events: none !important;
+
+  overflow: visible !important;
+
+  box-sizing: border-box !important;
+
+  opacity: 0 !important;
+
+  /*
+   * IMPORTANT:
+   *
+   * Don't use visibility:hidden here.
+   * The button needs to remain rendered while
+   * it slides out.
+   */
+  transition:
+    opacity 180ms ease !important;
+}
+
+
+/*
+ * Visible state.
+ */
+#firefox-fullscreen-exit-overlay.show {
+
+  opacity: 1 !important;
+
+  pointer-events: none !important;
+}
+
+
+/*
+ * Floating circular X.
+ */
+#firefox-fullscreen-exit-button {
+
+  pointer-events: auto !important;
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  width: 46px !important;
+  height: 46px !important;
+
+  /*
+   * User-controlled distance from top.
+   */
+  margin-top:
+    var(--button-offset, 14px) !important;
+
+  padding: 0 !important;
+
+  border: none !important;
+
+  border-radius: 50% !important;
+
+  background:
+    rgba(45, 45, 45, 0.90) !important;
+
+  color: white !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 27px !important;
+
+  font-weight: 300 !important;
+
+  line-height: 46px !important;
+
+  text-align: center !important;
+
+  cursor: pointer !important;
+
+  box-shadow:
+    0 3px 14px
+      rgba(0, 0, 0, 0.45),
+    0 1px 4px
+      rgba(0, 0, 0, 0.25) !important;
+
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+
+  /*
+   * Hidden above the screen.
+   */
+  transform:
+    translateY(-90px) !important;
+
+  /*
+   * Smooth entrance AND exit.
+   */
+  transition:
+    transform 300ms
+      cubic-bezier(
+        0.22,
+        0.61,
+        0.36,
+        1
+      ),
+    background-color 120ms ease,
+    box-shadow 120ms ease !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/*
+ * Slide IN.
+ */
+#firefox-fullscreen-exit-overlay.show
+#firefox-fullscreen-exit-button {
+
+  transform:
+    translateY(0) !important;
+}
+
+
+/*
+ * Slide OUT.
+ *
+ * Notice that the overlay stays rendered.
+ * Only the button moves out of frame.
+ */
+#firefox-fullscreen-exit-overlay.hiding
+#firefox-fullscreen-exit-button {
+
+  transform:
+    translateY(-90px) !important;
+}
+
+
+/*
+ * Once the animation has started,
+ * fade the container slightly.
+ */
+#firefox-fullscreen-exit-overlay.hiding {
+
+  opacity: 0 !important;
+}
+
+
+/*
+ * Hover.
+ */
+#firefox-fullscreen-exit-button:hover {
+
+  background:
+    rgba(65, 65, 65, 0.97) !important;
+
+  box-shadow:
+    0 4px 18px
+      rgba(0, 0, 0, 0.55),
+    0 1px 5px
+      rgba(0, 0, 0, 0.30) !important;
+}
+
+
+/*
+ * Click.
+ */
+#firefox-fullscreen-exit-button:active {
+
+  transform:
+    scale(0.92) !important;
+}
+
+
+/*
+ * Focus.
+ */
+#firefox-fullscreen-exit-button:focus {
+
+  outline: none !important;
+}
+
+
+#firefox-fullscreen-exit-button:focus-visible {
+
+  outline:
+    2px solid white !important;
+
+  outline-offset: 3px !important;
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fullscreen Exit</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <div class="tahoe-shell">
+    <div class="content-wrapper">
+
+     <header>
+        <div class="app-icon" style="padding: 3px;">
+          <!-- Custom Floating X Icon -->
+          <svg width="20" height="20" viewBox="0 0 128 128" fill="none">
+            <circle cx="64" cy="64" r="54" fill="#2D2D2D" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+            <path d="M46 46L82 82M82 46L46 82" stroke="white" stroke-width="10" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="header-titles">
+          <h1>Fullscreen Exit</h1>
+          <p>Chromium-style fullscreen control</p>
+        </div>
+      </header>
+
+      <!-- GENERAL CONTROL PANEL -->
+      <p class="section-label">General</p>
+      <div class="glass-group">
+
+        <div class="row">
+          <div class="row-info">
+            <strong>Floating exit button</strong>
+            <span>Show custom overlay button</span>
+          </div>
+          <label class="switch">
+            <input id="enabled" type="checkbox">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="row stack">
+          <div class="row-head">
+            <strong>Button distance</strong>
+            <output id="offsetValue">14 px</output>
+          </div>
+          <input id="offset" type="range" min="0" max="60" step="1" value="14">
+        </div>
+
+        <div class="row stack">
+          <div class="row-head">
+            <strong>Detection area</strong>
+            <output id="triggerValue">72 px</output>
+          </div>
+          <input id="trigger" type="range" min="58" max="180" step="1" value="72">
+          <p class="subtext" id="triggerDescription">Active zone to keep floating button visible</p>
+        </div>
+
+        <div class="row stack">
+          <div class="row-head">
+            <strong>Button timeout</strong>
+            <output id="timeoutValue">2.5 s</output>
+          </div>
+          <input id="timeout" type="range" min="1000" max="10000" step="500" value="2500">
+        </div>
+
+      </div>
+
+      <!-- FIREFOX SETTINGS PANEL -->
+      <p class="section-label">Firefox Setup</p>
+      <div class="glass-group">
+        <div class="row stack">
+          <div class="row-info">
+            <strong>Disable Native Warning</strong>
+            <span>Hide Firefox's default top warning bar</span>
+          </div>
+          <button id="openGuideModal" class="liquid-button" type="button">
+            View Setup Guide
+          </button>
+        </div>
+      </div>
+
+      <footer>
+        <span>Settings sync automatically across devices</span>
+      </footer>
+
+    </div>
+
+    <!-- GUIDE MODAL OVERLAY -->
+    <div id="guideModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <strong>Disable Native Warning</strong>
+          <button id="closeGuideModal" class="close-btn" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <ol class="guide-steps">
+            <li>Type <code>about:config</code> in your address bar and press Enter.</li>
+            <li>Click <strong>"Accept the Risk and Continue"</strong>.</li>
+            <li>Search for <code>full-screen-api.warning.timeout</code>.</li>
+            <li>Set its value to <code>0</code> (default is <code>3000</code>).</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

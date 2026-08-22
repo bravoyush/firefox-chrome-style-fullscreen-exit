@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <!-- Outer Shell -->
+  <rect width="128" height="128" rx="28" fill="#1C1D22"/>
+  <rect x="0.5" y="0.5" width="127" height="127" rx="27.5" stroke="white" stroke-opacity="0.12"/>
+  
+  <!-- Floating Exit Circle -->
+  <circle cx="64" cy="64" r="38" fill="#2D2D2D" stroke="white" stroke-opacity="0.15" stroke-width="2"/>
+  
+  <!-- Cross Symbol -->
+  <path d="M50 50L78 78M78 50L50 78" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -3,6 +3,7 @@
 
   const DEFAULTS = {
     enabled: true,
+    buttonStyle: "glass",
     buttonOffset: 14,
     triggerHeight: 72,
     timeout: 2500
@@ -19,6 +20,10 @@
   const triggerValue = document.getElementById("triggerValue");
   const triggerDescription = document.getElementById("triggerDescription");
   const timeoutValue = document.getElementById("timeoutValue");
+  const styleLabel = document.getElementById("styleLabel");
+  const styleCards = document.querySelectorAll(".style-card");
+
+  let currentStyle = "glass";
   
   const openGuideModal = document.getElementById("openGuideModal");
   const closeGuideModal = document.getElementById("closeGuideModal");
@@ -35,6 +40,35 @@
       guideModal.classList.add("hidden");
     });
   }
+
+  function setStyle(style, shouldSave = true) {
+    currentStyle = style === "solid" ? "solid" : "glass";
+    styleCards.forEach(card => {
+      const isSelected = card.getAttribute("data-style") === currentStyle;
+      card.classList.toggle("active", isSelected);
+      card.setAttribute("aria-checked", isSelected ? "true" : "false");
+    });
+    if (styleLabel) {
+      styleLabel.textContent = currentStyle === "solid" ? "Solid" : "Glass";
+    }
+    if (shouldSave) {
+      save();
+    }
+  }
+
+  styleCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const style = card.getAttribute("data-style");
+      setStyle(style, true);
+    });
+    card.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const style = card.getAttribute("data-style");
+        setStyle(style, true);
+      }
+    });
+  });
 
   function getMinimumTriggerHeight(buttonOffset) {
     return Number(buttonOffset) + BUTTON_SIZE + BUTTON_SAFETY;
@@ -62,6 +96,7 @@
     try {
       await browser.storage.local.set({
         enabled: enabled.checked,
+        buttonStyle: currentStyle,
         buttonOffset: Number(offset.value),
         triggerHeight: Number(trigger.value),
         timeout: Number(timeout.value)
@@ -75,6 +110,7 @@
     try {
       const settings = await browser.storage.local.get(DEFAULTS);
       enabled.checked = settings.enabled;
+      setStyle(settings.buttonStyle || "glass", false);
       offset.value = settings.buttonOffset;
       timeout.value = settings.timeout;
 

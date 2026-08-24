@@ -28,20 +28,13 @@
 
   opacity: 0 !important;
 
-  /*
-   * IMPORTANT:
-   *
-   * Don't use visibility:hidden here.
-   * The button needs to remain rendered while
-   * it slides out.
-   */
   transition:
     opacity 180ms ease !important;
 }
 
 
 /*
- * Visible state.
+ * Visible state
  */
 #firefox-fullscreen-exit-overlay.show {
 
@@ -52,7 +45,7 @@
 
 
 /*
- * Floating circular X.
+ * Base Button Structure & Layout
  */
 #firefox-fullscreen-exit-button {
 
@@ -61,76 +54,209 @@
   appearance: none !important;
   -webkit-appearance: none !important;
 
-  width: 46px !important;
-  height: 46px !important;
+  position: relative !important;
 
-  /*
-   * User-controlled distance from top.
-   */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
   margin-top:
     var(--button-offset, 14px) !important;
 
   padding: 0 !important;
 
-  border: none !important;
-
   border-radius: 50% !important;
-
-  background:
-    rgba(45, 45, 45, 0.90) !important;
-
-  color: white !important;
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif !important;
-
-  font-size: 27px !important;
-
-  font-weight: 300 !important;
-
-  line-height: 46px !important;
-
-  text-align: center !important;
 
   cursor: pointer !important;
 
-  box-shadow:
-    0 3px 14px
-      rgba(0, 0, 0, 0.45),
-    0 1px 4px
-      rgba(0, 0, 0, 0.25) !important;
+  font-size: 0 !important;
+  color: transparent !important;
 
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-
-  /*
-   * Hidden above the screen.
-   */
   transform:
     translateY(-90px) !important;
 
-  /*
-   * Smooth entrance AND exit.
-   */
   transition:
-    transform 300ms
-      cubic-bezier(
-        0.22,
-        0.61,
-        0.36,
-        1
-      ),
-    background-color 120ms ease,
-    box-shadow 120ms ease !important;
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease !important;
 
   box-sizing: border-box !important;
 }
 
 
 /*
- * Slide IN.
+ * ========================================================
+ * STYLE 1: Pure Refractive Glass Lens (Mac / Transparent)
+ * ========================================================
+ */
+#firefox-fullscreen-exit-button,
+#firefox-fullscreen-exit-button[data-style="glass"] {
+
+  /* Natural dark tint glass base */
+  background:
+    rgba(20, 20, 25, 0.25) !important;
+
+  /* Fine refractive specular border */
+  border:
+    1px solid rgba(255, 255, 255, 0.22) !important;
+
+  border-bottom-color:
+    rgba(255, 255, 255, 0.08) !important;
+
+  /* Real physical optical distortion effects */
+  backdrop-filter:
+    blur(16px) contrast(120%) brightness(1.1) !important;
+
+  -webkit-backdrop-filter:
+    blur(16px) contrast(120%) brightness(1.1) !important;
+
+  /* Natural depth drop-shadow */
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.4),
+    0 4px 10px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+#firefox-fullscreen-exit-button:hover,
+#firefox-fullscreen-exit-button[data-style="glass"]:hover {
+
+  background:
+    rgba(30, 30, 35, 0.35) !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.40) !important;
+
+  box-shadow:
+    0 12px 30px -4px rgba(0, 0, 0, 0.5),
+    0 6px 14px -2px rgba(0, 0, 0, 0.25) !important;
+}
+
+#firefox-fullscreen-exit-button:active,
+#firefox-fullscreen-exit-button[data-style="glass"]:active {
+
+  background:
+    rgba(15, 15, 20, 0.50) !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.15) !important;
+
+  transform:
+    translateY(0) scale(0.94) !important;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+
+/*
+ * ========================================================
+ * STYLE 2: Solid Dark Lens (Chrome Style)
+ * ========================================================
+ */
+#firefox-fullscreen-exit-button[data-style="solid"] {
+
+  /* Solid dark charcoal background */
+  background:
+    #202124 !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.16) !important;
+
+  backdrop-filter:
+    none !important;
+
+  -webkit-backdrop-filter:
+    none !important;
+
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.5),
+    0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+#firefox-fullscreen-exit-button[data-style="solid"]:hover {
+
+  background:
+    #35363a !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.32) !important;
+
+  box-shadow:
+    0 6px 22px rgba(0, 0, 0, 0.65),
+    0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+#firefox-fullscreen-exit-button[data-style="solid"]:active {
+
+  background:
+    #4a4d51 !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.2) !important;
+
+  transform:
+    translateY(0) scale(0.94) !important;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+
+/*
+ * ========================================================
+ * Cross Symbol (Glyph)
+ * ========================================================
+ */
+#firefox-fullscreen-exit-button::before,
+#firefox-fullscreen-exit-button::after {
+
+  content: "" !important;
+
+  position: absolute !important;
+
+  width: 18px !important;
+  height: 3px !important;
+
+  border-radius: 2px !important;
+
+  background:
+    rgba(255, 255, 255, 0.82) !important;
+
+  transition:
+    background 180ms ease,
+    transform 180ms ease !important;
+}
+
+#firefox-fullscreen-exit-button::before {
+
+  transform: rotate(45deg) !important;
+}
+
+#firefox-fullscreen-exit-button::after {
+
+  transform: rotate(-45deg) !important;
+}
+
+#firefox-fullscreen-exit-button:hover::before,
+#firefox-fullscreen-exit-button:hover::after {
+
+  background:
+    #ffffff !important;
+}
+
+#firefox-fullscreen-exit-button[data-style="solid"]::before,
+#firefox-fullscreen-exit-button[data-style="solid"]::after {
+
+  background:
+    #ffffff !important;
+}
+
+
+/*
+ * Slide IN
  */
 #firefox-fullscreen-exit-overlay.show
 #firefox-fullscreen-exit-button {
@@ -141,10 +267,7 @@
 
 
 /*
- * Slide OUT.
- *
- * Notice that the overlay stays rendered.
- * Only the button moves out of frame.
+ * Slide OUT
  */
 #firefox-fullscreen-exit-overlay.hiding
 #firefox-fullscreen-exit-button {
@@ -153,11 +276,6 @@
     translateY(-90px) !important;
 }
 
-
-/*
- * Once the animation has started,
- * fade the container slightly.
- */
 #firefox-fullscreen-exit-overlay.hiding {
 
   opacity: 0 !important;
@@ -165,44 +283,17 @@
 
 
 /*
- * Hover.
- */
-#firefox-fullscreen-exit-button:hover {
-
-  background:
-    rgba(65, 65, 65, 0.97) !important;
-
-  box-shadow:
-    0 4px 18px
-      rgba(0, 0, 0, 0.55),
-    0 1px 5px
-      rgba(0, 0, 0, 0.30) !important;
-}
-
-
-/*
- * Click.
- */
-#firefox-fullscreen-exit-button:active {
-
-  transform:
-    scale(0.92) !important;
-}
-
-
-/*
- * Focus.
+ * Focus accessibility
  */
 #firefox-fullscreen-exit-button:focus {
 
   outline: none !important;
 }
 
-
 #firefox-fullscreen-exit-button:focus-visible {
 
   outline:
-    2px solid white !important;
+    2px solid rgba(255, 255, 255, 0.8) !important;
 
-  outline-offset: 3px !important;
+  outline-offset: 4px !important;
 }

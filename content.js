@@ -3,6 +3,7 @@
 
   const DEFAULTS = {
     enabled: true,
+    buttonStyle: "glass",
     buttonOffset: 14,
     triggerHeight: 70,
     timeout: 2500
@@ -34,6 +35,7 @@
       const stored = await browser.storage.local.get(DEFAULTS);
       settings = { ...DEFAULTS, ...stored };
       updateButtonPosition();
+      updateButtonStyle();
       // Check if page/video is ALREADY in fullscreen when script loads/reloads
       fullscreenChanged();
     } catch {
@@ -49,6 +51,7 @@
       }
     }
     updateButtonPosition();
+    updateButtonStyle();
     if (!settings.enabled) {
       hideButton();
       return;
@@ -67,7 +70,6 @@
     button = document.createElement("button");
     button.id = "firefox-fullscreen-exit-button";
     button.type = "button";
-    button.textContent = "×";
     button.setAttribute("aria-label", "Exit fullscreen");
     button.title = "Exit fullscreen";
 
@@ -93,11 +95,17 @@
     });
 
     updateButtonPosition();
+    updateButtonStyle();
   }
 
   function updateButtonPosition() {
     if (!button) return;
     button.style.setProperty("--button-offset", `${Number(settings.buttonOffset)}px`);
+  }
+
+  function updateButtonStyle() {
+    if (!button) return;
+    button.setAttribute("data-style", settings.buttonStyle || "glass");
   }
 
   function removeButton() {

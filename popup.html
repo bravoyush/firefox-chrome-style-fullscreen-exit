@@ -42,6 +42,33 @@
 
         <div class="row stack">
           <div class="row-head">
+            <strong>Button style</strong>
+            <output id="styleLabel">Glass</output>
+          </div>
+          <div class="style-picker" role="radiogroup" aria-label="Button style">
+            <button type="button" class="style-card active" id="styleGlass" data-style="glass" aria-checked="true" role="radio">
+              <div class="preview-lens preview-glass">
+                <span class="preview-x"></span>
+              </div>
+              <div class="style-card-text">
+                <strong>Glass</strong>
+                <span>Mac / Glass</span>
+              </div>
+            </button>
+            <button type="button" class="style-card" id="styleSolid" data-style="solid" aria-checked="false" role="radio">
+              <div class="preview-lens preview-solid">
+                <span class="preview-x"></span>
+              </div>
+              <div class="style-card-text">
+                <strong>Solid</strong>
+                <span>Chrome style</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="row stack">
+          <div class="row-head">
             <strong>Button distance</strong>
             <output id="offsetValue">14 px</output>
           </div>

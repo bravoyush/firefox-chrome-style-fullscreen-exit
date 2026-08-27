@@ -42,33 +42,6 @@
 
         <div class="row stack">
           <div class="row-head">
-            <strong>Button style</strong>
-            <output id="styleLabel">Glass</output>
-          </div>
-          <div class="style-picker" role="radiogroup" aria-label="Button style">
-            <button type="button" class="style-card active" id="styleGlass" data-style="glass" aria-checked="true" role="radio">
-              <div class="preview-lens preview-glass">
-                <span class="preview-x"></span>
-              </div>
-              <div class="style-card-text">
-                <strong>Glass</strong>
-                <span>Mac / Glass</span>
-              </div>
-            </button>
-            <button type="button" class="style-card" id="styleSolid" data-style="solid" aria-checked="false" role="radio">
-              <div class="preview-lens preview-solid">
-                <span class="preview-x"></span>
-              </div>
-              <div class="style-card-text">
-                <strong>Solid</strong>
-                <span>Chrome style</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="row stack">
-          <div class="row-head">
             <strong>Button distance</strong>
             <output id="offsetValue">14 px</output>
           </div>
@@ -92,6 +65,74 @@
           <input id="timeout" type="range" min="1000" max="10000" step="500" value="2500">
         </div>
 
+      </div>
+
+      <!-- APPEARANCE & STYLES (COLLAPSIBLE) -->
+      <div class="collapsible-section" id="appearanceSection">
+        <button type="button" class="section-toggle" id="toggleAppearance" aria-expanded="false" aria-controls="appearanceBody">
+          <span class="section-label">Appearance</span>
+          <div class="toggle-right">
+            <span class="toggle-preview" id="appearanceSummary">Glass · macOS</span>
+            <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </button>
+        <div class="glass-group appearance-group hidden" id="appearanceBody">
+
+          <div class="row stack">
+            <div class="row-head">
+              <strong>Button style</strong>
+              <output id="styleLabel">Glass</output>
+            </div>
+            <div class="style-picker" role="radiogroup" aria-label="Button style">
+              <button type="button" class="style-card active" id="styleGlass" data-style="glass" aria-checked="true" role="radio">
+                <div class="preview-lens preview-glass">
+                  <span class="preview-x"></span>
+                </div>
+                <div class="style-card-text">
+                  <strong>Glass</strong>
+                  <span>Mac / Glass</span>
+                </div>
+              </button>
+              <button type="button" class="style-card" id="styleSolid" data-style="solid" aria-checked="false" role="radio">
+                <div class="preview-lens preview-solid">
+                  <span class="preview-x"></span>
+                </div>
+                <div class="style-card-text">
+                  <strong>Solid</strong>
+                  <span>Chrome style</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="row stack">
+            <div class="row-head">
+              <strong>Popup style</strong>
+              <output id="themeLabel">macOS</output>
+            </div>
+            <div class="style-picker" role="radiogroup" aria-label="Popup style">
+              <button type="button" class="style-card active" id="themeMac" data-theme="macos" aria-checked="true" role="radio">
+                <div class="preview-lens preview-theme-mac">
+                  <div class="theme-sample-box mac-sample"></div>
+                </div>
+                <div class="style-card-text">
+                  <strong>macOS</strong>
+                  <span>Glass / Blur</span>
+                </div>
+              </button>
+              <button type="button" class="style-card" id="themeNeutral" data-theme="neutral" aria-checked="false" role="radio">
+                <div class="preview-lens preview-theme-neutral">
+                  <div class="theme-sample-box neutral-sample"></div>
+                </div>
+                <div class="style-card-text">
+                  <strong>Neutral</strong>
+                  <span>Clean & simple</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <!-- FIREFOX SETTINGS PANEL -->
@@ -123,14 +164,17 @@
         </div>
         <div class="modal-body">
           <ol class="guide-steps">
-            <li>Type <code>about:config</code> in your address bar and press Enter.</li>
+            <li>Type <code title="Click to copy">about:config</code> in your address bar and press Enter.</li>
             <li>Click <strong>"Accept the Risk and Continue"</strong>.</li>
-            <li>Search for <code>full-screen-api.warning.timeout</code>.</li>
-            <li>Set its value to <code>0</code> (default is <code>3000</code>).</li>
+            <li>Search for <code title="Click to copy">full-screen-api.warning.timeout</code>.</li>
+            <li>Set its value to <code title="Click to copy">0</code> (default is <code>3000</code>).</li>
           </ol>
         </div>
       </div>
     </div>
+
+    <!-- COPY CONFIRMATION TOAST -->
+    <div id="copyToast" class="copy-toast">Copied to clipboard!</div>
 
   </div>
 

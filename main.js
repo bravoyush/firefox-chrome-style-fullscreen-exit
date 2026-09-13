@@ -176,116 +176,140 @@
 
     /*
      * ========================================
-     * CREATE WRAPPER
+     * CREATE WRAPPER SAFELY
      * ========================================
      */
 
-    const wrapper =
-      document.createElement("div");
+    let wrapper;
+
+    try {
+
+      wrapper =
+        document.createElement("div");
 
 
-    wrapper.setAttribute(
-      WRAPPER_ATTRIBUTE,
-      "true"
-    );
+      wrapper.setAttribute(
+        WRAPPER_ATTRIBUTE,
+        "true"
+      );
 
 
-    /*
-     * ========================================
-     * SAVE ORIGINAL STYLES
-     * ========================================
-     */
+      /*
+       * ========================================
+       * SAVE ORIGINAL STYLES
+       * ========================================
+       */
 
-    const oldStyles = {
+      const oldStyles = {
 
-      width:
-        video.style.width,
+        width:
+          video.style.width,
 
-      height:
-        video.style.height,
+        height:
+          video.style.height,
 
-      maxWidth:
-        video.style.maxWidth,
+        maxWidth:
+          video.style.maxWidth,
 
-      maxHeight:
-        video.style.maxHeight,
+        maxHeight:
+          video.style.maxHeight,
 
-      objectFit:
-        video.style.objectFit,
+        objectFit:
+          video.style.objectFit,
 
-      position:
-        video.style.position,
+        position:
+          video.style.position,
 
-      display:
-        video.style.display
+        display:
+          video.style.display
 
-    };
-
-
-    video.setAttribute(
-      ORIGINAL_STYLES,
-      JSON.stringify(oldStyles)
-    );
+      };
 
 
-    /*
-     * ========================================
-     * WRAPPER STYLE
-     * ========================================
-     */
-
-    wrapper.style.position =
-      "relative";
-
-    wrapper.style.width =
-      "100%";
-
-    wrapper.style.height =
-      "100%";
-
-    wrapper.style.background =
-      "black";
-
-    wrapper.style.overflow =
-      "hidden";
+      video.setAttribute(
+        ORIGINAL_STYLES,
+        JSON.stringify(oldStyles)
+      );
 
 
-    /*
-     * ========================================
-     * MOVE VIDEO
-     * ========================================
-     */
+      /*
+       * ========================================
+       * WRAPPER STYLE
+       * ========================================
+       */
 
-    parent.insertBefore(
-      wrapper,
-      video
-    );
+      wrapper.style.position =
+        "relative";
 
-    wrapper.appendChild(
-      video
-    );
+      wrapper.style.width =
+        "100%";
+
+      wrapper.style.height =
+        "100%";
+
+      wrapper.style.background =
+        "black";
+
+      wrapper.style.overflow =
+        "hidden";
 
 
-    /*
-     * ========================================
-     * VIDEO STYLE
-     * ========================================
-     */
+      /*
+       * ========================================
+       * MOVE VIDEO
+       * ========================================
+       */
 
-    video.style.width =
-      "100%";
+      parent.insertBefore(
+        wrapper,
+        video
+      );
 
-    video.style.height =
-      "100%";
+      wrapper.appendChild(
+        video
+      );
 
-    video.style.maxWidth =
-      "100%";
 
-    video.style.maxHeight =
-      "100%";
+      /*
+       * ========================================
+       * VIDEO STYLE
+       * ========================================
+       */
 
-    video.style.objectFit =
-      "contain";
+      video.style.width =
+        "100%";
+
+      video.style.height =
+        "100%";
+
+      video.style.maxWidth =
+        "100%";
+
+      video.style.maxHeight =
+        "100%";
+
+      video.style.objectFit =
+        "contain";
+
+    } catch (err) {
+
+      /*
+       * If wrapping fails for any reason (e.g. Shadow DOM or DOM restrictions),
+       * safely fallback to direct native video fullscreen.
+       */
+
+      if (wrapper) {
+        try {
+          restoreVideoWrapper(wrapper);
+        } catch {}
+      }
+
+      return originalRequestFullscreen.call(
+        video,
+        options
+      );
+
+    }
 
 
     /*
@@ -311,7 +335,10 @@
         wrapper
       );
 
-      throw error;
+      return originalRequestFullscreen.call(
+        video,
+        options
+      );
 
     }
 

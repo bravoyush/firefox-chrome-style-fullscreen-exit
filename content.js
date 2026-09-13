@@ -15,6 +15,7 @@
   let settings = { ...DEFAULTS };
   let overlay = null;
   let button = null;
+  let sensor = null;
   let mouseX = 0;
   let mouseY = 9999;
   let mouseInActiveZone = false;
@@ -30,13 +31,61 @@
     return Math.max(Number(settings.triggerHeight), getMinimumTriggerHeight());
   }
 
+  function isFullscreenActive() {
+    return Boolean(
+      document.fullscreenElement ||
+      window.fullScreen ||
+      (window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches)
+    );
+  }
+
+  function getDeepestActiveTarget() {
+    const fs = document.fullscreenElement;
+    if (!fs) {
+      return document.body || document.documentElement;
+    }
+
+    // 1. If it's a raw video tag, use its parent or document root
+    if (fs instanceof HTMLVideoElement) {
+      return fs.parentElement || document.body || document.documentElement;
+    }
+
+    // 2. If it's an iframe, keep overlay in parent document top layer
+    if (fs instanceof HTMLIFrameElement || !fs.appendChild) {
+      return document.body || document.documentElement;
+    }
+
+    // 3. If it has an open shadow root (e.g. Reddit shreddit-player, custom web components), inject inside shadow tree
+    if (fs.shadowRoot && typeof fs.shadowRoot.appendChild === "function") {
+      const innerContainer = fs.shadowRoot.querySelector(".player-container, [part='container'], .video-player") || fs.shadowRoot;
+      return innerContainer;
+    }
+
+    return fs;
+  }
+
+  function ensureShadowRootStyles(target) {
+    if (!target) return;
+    const root = target instanceof ShadowRoot ? target : (typeof target.getRootNode === "function" ? target.getRootNode() : null);
+    if (root && root instanceof ShadowRoot && root.querySelector) {
+      if (!root.querySelector("link[data-chromium-fs-style], style[data-chromium-fs-style]")) {
+        try {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = browser.runtime.getURL("style.css");
+          link.setAttribute("data-chromium-fs-style", "true");
+          root.appendChild(link);
+        } catch {}
+      }
+    }
+  }
+
   async function loadSettings() {
     try {
       const stored = await browser.storage.local.get(DEFAULTS);
       settings = { ...DEFAULTS, ...stored };
       updateButtonPosition();
       updateButtonStyle();
-      // Check if page/video is ALREADY in fullscreen when script loads/reloads
       fullscreenChanged();
     } catch {
       settings = { ...DEFAULTS };
@@ -56,7 +105,7 @@
       hideButton();
       return;
     }
-    if (document.fullscreenElement) {
+    if (isFullscreenActive()) {
       updateMouseZone();
     }
   });
@@ -75,22 +124,45 @@
 
     overlay.appendChild(button);
 
+    sensor = document.createElement("div");
+    sensor.id = "firefox-fullscreen-exit-sensor";
+    sensor.style.height = `${getTriggerHeight()}px`;
+
+    sensor.addEventListener("mousemove", event => {
+      if (!isFullscreenActive() || !overlay || !settings.enabled) return;
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+      updateMouseZone();
+    });
+
+    sensor.addEventListener("mouseleave", () => {
+      if (!isFullscreenActive()) return;
+      if (button && button.matches(":hover")) return;
+      mouseY = 9999;
+      updateMouseZone();
+    });
+
     button.addEventListener("click", event => {
       event.preventDefault();
       event.stopPropagation();
+
+      // If in HTML5 video/element fullscreen, ONLY exit element fullscreen without touching browser window size
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(() => {});
+      } else if (window.fullScreen || (window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches)) {
+        // Only trigger window-level exit if we are in browser F11 fullscreen
+        browser.runtime.sendMessage({ action: "exit_window_fullscreen" }).catch(() => {});
       }
     });
 
     button.addEventListener("mouseenter", () => {
-      if (!document.fullscreenElement || !settings.enabled) return;
+      if (!isFullscreenActive() || !settings.enabled) return;
       mouseInActiveZone = true;
       cancelTimers();
     });
 
     button.addEventListener("mouseleave", () => {
-      if (!document.fullscreenElement) return;
+      if (!isFullscreenActive()) return;
       updateMouseZone();
     });
 
@@ -101,6 +173,9 @@
   function updateButtonPosition() {
     if (!button) return;
     button.style.setProperty("--button-offset", `${Number(settings.buttonOffset)}px`);
+    if (sensor) {
+      sensor.style.height = `${getTriggerHeight()}px`;
+    }
   }
 
   function updateButtonStyle() {
@@ -110,8 +185,10 @@
 
   function removeButton() {
     if (overlay) overlay.remove();
+    if (sensor) sensor.remove();
     overlay = null;
     button = null;
+    sensor = null;
     buttonVisible = false;
     mouseInActiveZone = false;
     cancelTimers();
@@ -146,7 +223,7 @@
   }
 
   function updateMouseZone() {
-    if (!document.fullscreenElement || !overlay || !settings.enabled) {
+    if (!isFullscreenActive() || !overlay || !settings.enabled) {
       mouseInActiveZone = false;
       return;
     }
@@ -183,16 +260,43 @@
   }
 
   document.addEventListener("mousemove", event => {
-    if (!document.fullscreenElement || !overlay || !settings.enabled) return;
+    if (!isFullscreenActive() || !overlay || !settings.enabled) return;
     mouseX = event.clientX;
     mouseY = event.clientY;
     updateMouseZone();
   }, true);
 
-  function fullscreenChanged() {
-    const fullscreenElement = document.fullscreenElement;
+  function attachOverlay() {
+    if (!overlay || !isFullscreenActive() || !settings.enabled) return;
+    const target = getDeepestActiveTarget();
+    if (!target) return;
 
-    if (!fullscreenElement) {
+    if (!target.contains(overlay)) {
+      try {
+        ensureShadowRootStyles(target);
+        target.appendChild(overlay);
+      } catch {
+        try {
+          (document.body || document.documentElement).appendChild(overlay);
+        } catch {}
+      }
+    }
+
+    if (sensor && !target.contains(sensor)) {
+      try {
+        target.appendChild(sensor);
+      } catch {
+        try {
+          (document.body || document.documentElement).appendChild(sensor);
+        } catch {}
+      }
+    }
+  }
+
+  function fullscreenChanged() {
+    const active = isFullscreenActive();
+
+    if (!active) {
       removeButton();
       mouseInActiveZone = false;
       mouseY = 9999;
@@ -205,12 +309,7 @@
     }
 
     createButton();
-
-    if (!fullscreenElement.contains(overlay)) {
-      try {
-        fullscreenElement.appendChild(overlay);
-      } catch {}
-    }
+    attachOverlay();
 
     overlay.classList.remove("show");
     overlay.classList.remove("hiding");
@@ -220,19 +319,14 @@
   }
 
   document.addEventListener("fullscreenchange", fullscreenChanged);
+  window.addEventListener("resize", fullscreenChanged);
 
-  const observer = new MutationObserver(() => {
-    const fullscreenElement = document.fullscreenElement;
-    if (!fullscreenElement || !overlay || !settings.enabled) return;
-
-    if (!fullscreenElement.contains(overlay)) {
-      try {
-        fullscreenElement.appendChild(overlay);
-      } catch {}
+  if (window.matchMedia) {
+    const mediaQuery = window.matchMedia("(display-mode: fullscreen)");
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", fullscreenChanged);
     }
-  });
-
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
 
   loadSettings();
 })();

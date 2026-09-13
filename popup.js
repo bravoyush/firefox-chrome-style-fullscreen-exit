@@ -3,11 +3,12 @@
 
   const DEFAULTS = {
     enabled: true,
-    buttonStyle: "glass",
-    popupTheme: "macos",
-    buttonOffset: 14,
-    triggerHeight: 72,
-    timeout: 2500
+    buttonStyle: "solid",
+    popupTheme: "neutral",
+    buttonOffset: 60,
+    triggerHeight: 8,
+    triggerWidth: 100,
+    timeout: 3500
   };
 
   const BUTTON_SIZE = 46;
@@ -16,9 +17,11 @@
   const enabled = document.getElementById("enabled");
   const offset = document.getElementById("offset");
   const trigger = document.getElementById("trigger");
+  const triggerWidth = document.getElementById("triggerWidth");
   const timeout = document.getElementById("timeout");
   const offsetValue = document.getElementById("offsetValue");
   const triggerValue = document.getElementById("triggerValue");
+  const triggerWidthValue = document.getElementById("triggerWidthValue");
   const triggerDescription = document.getElementById("triggerDescription");
   const timeoutValue = document.getElementById("timeoutValue");
   const styleLabel = document.getElementById("styleLabel");
@@ -26,8 +29,8 @@
   const themeLabel = document.getElementById("themeLabel");
   const themeCards = document.querySelectorAll('.style-card[data-theme]');
 
-  let currentStyle = "glass";
-  let currentTheme = "macos";
+  let currentStyle = "solid";
+  let currentTheme = "neutral";
   
   const openGuideModal = document.getElementById("openGuideModal");
   const closeGuideModal = document.getElementById("closeGuideModal");
@@ -178,38 +181,31 @@
     });
   });
 
-  function getMinimumTriggerHeight(buttonOffset) {
-    return Number(buttonOffset) + BUTTON_SIZE + BUTTON_SAFETY;
-  }
-
-  function updateTriggerMinimum() {
-    const minimum = getMinimumTriggerHeight(Number(offset.value));
-    trigger.min = minimum;
-    if (Number(trigger.value) < minimum) {
-      trigger.value = minimum;
-    }
-    if (triggerDescription) {
-      triggerDescription.textContent = `Active zone to keep floating button visible`;
-    }
-  }
-
   function updateLabels() {
     offsetValue.textContent = `${offset.value} px`;
-    triggerValue.textContent = `${trigger.value} px`;
+    triggerValue.textContent = `${trigger.value}%`;
+    if (triggerWidthValue && triggerWidth) {
+      triggerWidthValue.textContent = `${triggerWidth.value}%`;
+    }
     const seconds = Number(timeout.value) / 1000;
     timeoutValue.textContent = `${seconds % 1 === 0 ? seconds : seconds.toFixed(1)} s`;
   }
 
-  async function save() {
+  async function save(triggerPreview = false) {
     try {
-      await browser.storage.local.set({
+      const payload = {
         enabled: enabled.checked,
         buttonStyle: currentStyle,
         popupTheme: currentTheme,
         buttonOffset: Number(offset.value),
         triggerHeight: Number(trigger.value),
+        triggerWidth: triggerWidth ? Number(triggerWidth.value) : 100,
         timeout: Number(timeout.value)
-      });
+      };
+      if (triggerPreview) {
+        payload.previewTimestamp = Date.now();
+      }
+      await browser.storage.local.set(payload);
     } catch (error) {
       console.error("Fullscreen Exit: Failed to save settings.", error);
     }
@@ -224,9 +220,16 @@
       offset.value = settings.buttonOffset;
       timeout.value = settings.timeout;
 
-      updateTriggerMinimum();
-      if (Number(settings.triggerHeight) >= Number(trigger.min)) {
+      // Migrate older raw pixel heights (e.g. 72, 118) to clean percentage (default 8%)
+      if (Number(settings.triggerHeight) > 30) {
+        trigger.value = 8;
+        browser.storage.local.set({ triggerHeight: 8 }).catch(() => {});
+      } else if (settings.triggerHeight !== undefined) {
         trigger.value = settings.triggerHeight;
+      }
+
+      if (triggerWidth && settings.triggerWidth !== undefined) {
+        triggerWidth.value = settings.triggerWidth;
       }
 
       updateLabels();
@@ -238,10 +241,45 @@
     }
   }
 
-  enabled.addEventListener("change", save);
-  offset.addEventListener("input", () => { updateTriggerMinimum(); updateLabels(); paintAllSliders(); save(); });
-  trigger.addEventListener("input", () => { updateLabels(); paintAllSliders(); save(); });
-  timeout.addEventListener("input", () => { updateLabels(); paintAllSliders(); save(); });
+  function notifyActiveTabPreview() {
+    try {
+      browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+        if (tabs && tabs[0] && typeof tabs[0].id === "number") {
+          browser.tabs.sendMessage(tabs[0].id, {
+            action: "preview_trigger_zone",
+            triggerHeight: Number(trigger.value),
+            triggerWidth: triggerWidth ? Number(triggerWidth.value) : 100
+          }).catch(() => {});
+        }
+      }).catch(() => {});
+    } catch {}
+  }
+
+  enabled.addEventListener("change", () => save(false));
+  offset.addEventListener("input", () => { updateLabels(); paintAllSliders(); save(false); });
+  trigger.addEventListener("input", () => { updateLabels(); paintAllSliders(); notifyActiveTabPreview(); save(true); });
+  if (triggerWidth) {
+    triggerWidth.addEventListener("input", () => { updateLabels(); paintAllSliders(); notifyActiveTabPreview(); save(true); });
+  }
+  timeout.addEventListener("input", () => { updateLabels(); paintAllSliders(); save(false); });
+
+  const resetDefaults = document.getElementById("resetDefaults");
+  if (resetDefaults) {
+    resetDefaults.addEventListener("click", async () => {
+      enabled.checked = DEFAULTS.enabled;
+      offset.value = DEFAULTS.buttonOffset;
+      trigger.value = DEFAULTS.triggerHeight;
+      if (triggerWidth) triggerWidth.value = DEFAULTS.triggerWidth;
+      timeout.value = DEFAULTS.timeout;
+      setStyle(DEFAULTS.buttonStyle, false);
+      setTheme(DEFAULTS.popupTheme, false);
+      updateLabels();
+      paintAllSliders();
+      notifyActiveTabPreview();
+      await save(true);
+      showToast("Reset to defaults!");
+    });
+  }
 
   function paintSlider(el) {
     if (!el) return;

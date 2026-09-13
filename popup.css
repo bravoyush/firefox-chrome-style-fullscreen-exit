@@ -581,6 +581,69 @@ input[type="range"]::-moz-range-thumb {
   color: inherit;
 }
 
+/* Reset to Defaults Button */
+.reset-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6.5px 12px;
+  border: 0.5px solid var(--btn-border);
+  border-radius: 8px;
+  background: var(--btn-bg);
+  color: var(--label-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reset-button:hover {
+  background: var(--btn-hover);
+  color: var(--label-primary);
+}
+
+.reset-button:active {
+  transform: scale(0.98);
+}
+
+.reset-button svg {
+  opacity: 0.75;
+  transition: transform 0.25s ease, opacity 0.15s ease;
+}
+
+.reset-button:hover svg {
+  opacity: 1;
+  transform: rotate(-35deg);
+}
+
+html[data-popup-theme="neutral"] .reset-button {
+  border-radius: 6px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #a0a0a0;
+}
+
+html[data-popup-theme="neutral"] .reset-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  html[data-popup-theme="neutral"] .reset-button {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.04);
+    color: #555555;
+  }
+  html[data-popup-theme="neutral"] .reset-button:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #111111;
+  }
+}
+
 footer {
   margin-top: 8px;
   padding-top: 2px;

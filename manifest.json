@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chromium Style Fullscreen Exit",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Adds a customizable floating Chromium-style fullscreen exit button to Firefox.",
 
   "browser_specific_settings": {

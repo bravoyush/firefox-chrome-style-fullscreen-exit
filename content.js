@@ -3,10 +3,11 @@
 
   const DEFAULTS = {
     enabled: true,
-    buttonStyle: "glass",
-    buttonOffset: 14,
-    triggerHeight: 70,
-    timeout: 2500
+    buttonStyle: "solid",
+    buttonOffset: 60,
+    triggerHeight: 8,
+    triggerWidth: 100,
+    timeout: 3500
   };
 
   const BUTTON_SIZE = 46;
@@ -16,6 +17,9 @@
   let overlay = null;
   let button = null;
   let sensor = null;
+  let visualizer = null;
+  let visualizerTimer = null;
+  let yieldTimer = null;
   let mouseX = 0;
   let mouseY = 9999;
   let mouseInActiveZone = false;
@@ -27,8 +31,48 @@
     return Number(settings.buttonOffset) + BUTTON_SIZE + BUTTON_SAFETY;
   }
 
+  function getTriggerHeightPct() {
+    const rawVal = Number(settings.triggerHeight);
+    return rawVal > 30 ? 8 : Math.max(4, Math.min(30, rawVal || 8));
+  }
+
   function getTriggerHeight() {
-    return Math.max(Number(settings.triggerHeight), getMinimumTriggerHeight());
+    const screenHeight = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 1080;
+    const calculatedPx = Math.round((screenHeight * getTriggerHeightPct()) / 100);
+    return Math.max(calculatedPx, getMinimumTriggerHeight());
+  }
+
+  function getTriggerWidth() {
+    return Math.max(20, Math.min(100, Number(settings.triggerWidth) || 100));
+  }
+
+  function getTriggerHorizontalBounds() {
+    const widthPct = getTriggerWidth();
+    const halfWidthPct = widthPct / 2;
+    const screenWidth = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || 1920;
+    const centerX = screenWidth / 2;
+    const halfWidthPx = (screenWidth * halfWidthPct) / 100;
+    return {
+      left: centerX - halfWidthPx,
+      right: centerX + halfWidthPx
+    };
+  }
+
+  function isMouseInTriggerZone() {
+    const triggerHeight = getTriggerHeight();
+    if (mouseY > triggerHeight) return false;
+    const bounds = getTriggerHorizontalBounds();
+    return mouseX >= bounds.left && mouseX <= bounds.right;
+  }
+
+  function hasIframeTarget() {
+    const fs = document.fullscreenElement;
+    if (!fs) return false;
+    if (fs instanceof HTMLIFrameElement || fs.tagName === "IFRAME") return true;
+    try {
+      if (fs.querySelector && fs.querySelector("iframe")) return true;
+    } catch {}
+    return false;
   }
 
   function isFullscreenActive() {
@@ -94,13 +138,20 @@
 
   browser.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
+    let shouldPreview = false;
     for (const key of Object.keys(changes)) {
       if (Object.prototype.hasOwnProperty.call(settings, key)) {
         settings[key] = changes[key].newValue;
       }
+      if (key === "previewTimestamp" || key === "triggerWidth" || key === "triggerHeight") {
+        shouldPreview = true;
+      }
     }
     updateButtonPosition();
     updateButtonStyle();
+    if (shouldPreview) {
+      showVisualizer();
+    }
     if (!settings.enabled) {
       hideButton();
       return;
@@ -109,6 +160,70 @@
       updateMouseZone();
     }
   });
+
+  browser.runtime.onMessage.addListener(message => {
+    if (message && message.action === "preview_trigger_zone") {
+      if (typeof message.triggerHeight === "number") {
+        settings.triggerHeight = message.triggerHeight;
+      }
+      if (typeof message.triggerWidth === "number") {
+        settings.triggerWidth = message.triggerWidth;
+      }
+      updateButtonPosition();
+      showVisualizer();
+    }
+  });
+
+  function passEventThrough(event) {
+    if (!sensor) return;
+    sensor.classList.add("disabled");
+    const x = event.clientX;
+    const y = event.clientY;
+    const elementBelow = document.elementFromPoint(x, y);
+    if (elementBelow && elementBelow !== sensor) {
+      try {
+        elementBelow.dispatchEvent(new PointerEvent(event.type, event));
+      } catch {
+        try {
+          elementBelow.dispatchEvent(new MouseEvent(event.type, event));
+        } catch {}
+      }
+    }
+    if (yieldTimer) clearTimeout(yieldTimer);
+    yieldTimer = setTimeout(() => {
+      if (sensor) sensor.classList.remove("disabled");
+    }, 350);
+  }
+
+  function showVisualizer() {
+    if (window.self !== window.top) return;
+    if (!settings.enabled) return;
+    if (!visualizer || !visualizer.parentElement) {
+      if (!visualizer) {
+        visualizer = document.createElement("div");
+        visualizer.id = "firefox-fullscreen-exit-visualizer";
+      }
+      const target = document.fullscreenElement || document.body || document.documentElement;
+      try {
+        target.appendChild(visualizer);
+      } catch {
+        try {
+          (document.body || document.documentElement).appendChild(visualizer);
+        } catch {}
+      }
+    }
+    updateButtonPosition();
+    visualizer.classList.remove("visible");
+    void visualizer.offsetWidth;
+    visualizer.classList.add("visible");
+
+    if (visualizerTimer) clearTimeout(visualizerTimer);
+    visualizerTimer = setTimeout(() => {
+      if (visualizer) {
+        visualizer.classList.remove("visible");
+      }
+    }, 1800);
+  }
 
   function createButton() {
     if (overlay) return;
@@ -126,7 +241,6 @@
 
     sensor = document.createElement("div");
     sensor.id = "firefox-fullscreen-exit-sensor";
-    sensor.style.height = `${getTriggerHeight()}px`;
 
     sensor.addEventListener("mousemove", event => {
       if (!isFullscreenActive() || !overlay || !settings.enabled) return;
@@ -140,6 +254,11 @@
       if (button && button.matches(":hover")) return;
       mouseY = 9999;
       updateMouseZone();
+    });
+
+    sensor.addEventListener("pointerdown", event => {
+      if (event.target === button || (button && button.contains(event.target))) return;
+      passEventThrough(event);
     });
 
     button.addEventListener("click", event => {
@@ -171,10 +290,23 @@
   }
 
   function updateButtonPosition() {
-    if (!button) return;
-    button.style.setProperty("--button-offset", `${Number(settings.buttonOffset)}px`);
+    if (button) {
+      button.style.setProperty("--button-offset", `${Number(settings.buttonOffset)}px`);
+    }
+    const height = `${getTriggerHeight()}px`;
+    const width = `${getTriggerWidth()}vw`;
     if (sensor) {
-      sensor.style.height = `${getTriggerHeight()}px`;
+      sensor.style.setProperty("--sensor-height", height);
+      sensor.style.setProperty("--sensor-width", width);
+      sensor.style.setProperty("height", height, "important");
+      sensor.style.setProperty("width", width, "important");
+    }
+    if (visualizer) {
+      visualizer.style.setProperty("--visualizer-height", height);
+      visualizer.style.setProperty("--visualizer-width", width);
+      visualizer.style.setProperty("height", height, "important");
+      visualizer.style.setProperty("width", width, "important");
+      visualizer.textContent = `Active Zone (${getTriggerWidth()}% × ${getTriggerHeightPct()}%)`;
     }
   }
 
@@ -186,9 +318,11 @@
   function removeButton() {
     if (overlay) overlay.remove();
     if (sensor) sensor.remove();
+    if (visualizer) visualizer.remove();
     overlay = null;
     button = null;
     sensor = null;
+    visualizer = null;
     buttonVisible = false;
     mouseInActiveZone = false;
     cancelTimers();
@@ -197,6 +331,8 @@
   function cancelTimers() {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+    if (yieldTimer) { clearTimeout(yieldTimer); yieldTimer = null; }
+    if (visualizerTimer) { clearTimeout(visualizerTimer); visualizerTimer = null; }
   }
 
   function showButton() {
@@ -228,10 +364,9 @@
       return;
     }
 
-    const triggerHeight = getTriggerHeight();
-    const inTopArea = mouseY <= triggerHeight;
+    const inTriggerArea = isMouseInTriggerZone();
     const overButton = button && button.matches(":hover");
-    const active = inTopArea || overButton;
+    const active = inTriggerArea || overButton;
     const previous = mouseInActiveZone;
 
     mouseInActiveZone = active;
@@ -282,13 +417,23 @@
       }
     }
 
-    if (sensor && !target.contains(sensor)) {
-      try {
-        target.appendChild(sensor);
-      } catch {
+    // Only attach the top sensor if an iframe is detected in fullscreen!
+    // Native players (like YouTube, HTML5 video) do not need the sensor because
+    // the document's global mousemove listener works 100% natively without blocking controls.
+    if (hasIframeTarget()) {
+      if (sensor && !target.contains(sensor)) {
         try {
-          (document.body || document.documentElement).appendChild(sensor);
-        } catch {}
+          target.appendChild(sensor);
+        } catch {
+          try {
+            (document.body || document.documentElement).appendChild(sensor);
+          } catch {}
+        }
+      }
+    } else {
+      // If native player, ensure sensor is detached
+      if (sensor && sensor.parentElement) {
+        sensor.remove();
       }
     }
   }

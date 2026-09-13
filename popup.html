@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-popup-theme="neutral">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,26 +43,35 @@
         <div class="row stack">
           <div class="row-head">
             <strong>Button distance</strong>
-            <output id="offsetValue">14 px</output>
+            <output id="offsetValue">60 px</output>
           </div>
-          <input id="offset" type="range" min="0" max="60" step="1" value="14">
+          <input id="offset" type="range" min="0" max="100" step="1" value="60">
         </div>
 
         <div class="row stack">
           <div class="row-head">
-            <strong>Detection area</strong>
-            <output id="triggerValue">72 px</output>
+            <strong>Detection height</strong>
+            <output id="triggerValue">8%</output>
           </div>
-          <input id="trigger" type="range" min="58" max="180" step="1" value="72">
-          <p class="subtext" id="triggerDescription">Active zone to keep floating button visible</p>
+          <input id="trigger" type="range" min="4" max="25" step="1" value="8">
+          <p class="subtext" id="triggerDescription">Active height from top of screen</p>
+        </div>
+
+        <div class="row stack">
+          <div class="row-head">
+            <strong>Detection width</strong>
+            <output id="triggerWidthValue">100%</output>
+          </div>
+          <input id="triggerWidth" type="range" min="20" max="100" step="5" value="100">
+          <p class="subtext" id="triggerWidthDescription">Active width centered at top of screen</p>
         </div>
 
         <div class="row stack">
           <div class="row-head">
             <strong>Button timeout</strong>
-            <output id="timeoutValue">2.5 s</output>
+            <output id="timeoutValue">3.5 s</output>
           </div>
-          <input id="timeout" type="range" min="1000" max="10000" step="500" value="2500">
+          <input id="timeout" type="range" min="1000" max="10000" step="500" value="3500">
         </div>
 
       </div>
@@ -72,7 +81,7 @@
         <button type="button" class="section-toggle" id="toggleAppearance" aria-expanded="false" aria-controls="appearanceBody">
           <span class="section-label">Appearance</span>
           <div class="toggle-right">
-            <span class="toggle-preview" id="appearanceSummary">Glass · macOS</span>
+            <span class="toggle-preview" id="appearanceSummary">Solid · Neutral</span>
             <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
         </button>
@@ -81,10 +90,10 @@
           <div class="row stack">
             <div class="row-head">
               <strong>Button style</strong>
-              <output id="styleLabel">Glass</output>
+              <output id="styleLabel">Solid</output>
             </div>
             <div class="style-picker" role="radiogroup" aria-label="Button style">
-              <button type="button" class="style-card active" id="styleGlass" data-style="glass" aria-checked="true" role="radio">
+              <button type="button" class="style-card" id="styleGlass" data-style="glass" aria-checked="false" role="radio">
                 <div class="preview-lens preview-glass">
                   <span class="preview-x"></span>
                 </div>
@@ -93,7 +102,7 @@
                   <span>Mac / Glass</span>
                 </div>
               </button>
-              <button type="button" class="style-card" id="styleSolid" data-style="solid" aria-checked="false" role="radio">
+              <button type="button" class="style-card active" id="styleSolid" data-style="solid" aria-checked="true" role="radio">
                 <div class="preview-lens preview-solid">
                   <span class="preview-x"></span>
                 </div>
@@ -108,10 +117,10 @@
           <div class="row stack">
             <div class="row-head">
               <strong>Popup style</strong>
-              <output id="themeLabel">macOS</output>
+              <output id="themeLabel">Neutral</output>
             </div>
             <div class="style-picker" role="radiogroup" aria-label="Popup style">
-              <button type="button" class="style-card active" id="themeMac" data-theme="macos" aria-checked="true" role="radio">
+              <button type="button" class="style-card" id="themeMac" data-theme="macos" aria-checked="false" role="radio">
                 <div class="preview-lens preview-theme-mac">
                   <div class="theme-sample-box mac-sample"></div>
                 </div>
@@ -120,7 +129,7 @@
                   <span>Glass / Blur</span>
                 </div>
               </button>
-              <button type="button" class="style-card" id="themeNeutral" data-theme="neutral" aria-checked="false" role="radio">
+              <button type="button" class="style-card active" id="themeNeutral" data-theme="neutral" aria-checked="true" role="radio">
                 <div class="preview-lens preview-theme-neutral">
                   <div class="theme-sample-box neutral-sample"></div>
                 </div>
@@ -148,6 +157,14 @@
           </button>
         </div>
       </div>
+
+      <button id="resetDefaults" class="reset-button" type="button">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        Reset to Defaults
+      </button>
 
       <footer>
         <span>Settings sync automatically across devices</span>
